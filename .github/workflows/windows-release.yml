@@ -21,6 +21,21 @@ jobs:
         run: dotnet test MusicDownloaderPro.sln -c Release --no-restore --logger trx
       - name: Publish x64
         run: dotnet publish src/MusicDownloaderPro/MusicDownloaderPro.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -o artifacts/publish/win-x64
+      - name: Startup smoke test
+        shell: pwsh
+        run: |
+          $logRoot = Join-Path $env:LOCALAPPDATA "MusicDownloaderPro\Logs"
+          Remove-Item $logRoot -Recurse -Force -ErrorAction SilentlyContinue
+          $process = Start-Process "artifacts/publish/win-x64/MusicDownloaderPro.exe" -PassThru
+          Start-Sleep -Seconds 8
+          $logs = Get-ChildItem $logRoot -Filter "*.txt" -ErrorAction SilentlyContinue
+          if ($logs) {
+            $logs | ForEach-Object { Get-Content $_.FullName }
+            Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+            throw "Application logged an exception during startup."
+          }
+          if ($process.HasExited) { throw "Application exited during startup with code $($process.ExitCode)." }
+          Stop-Process -Id $process.Id -Force
       - name: Install Inno Setup
         run: choco install innosetup --no-progress -y
       - name: Build installer
