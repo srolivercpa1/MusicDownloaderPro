@@ -1,0 +1,39 @@
+name: Build Windows EXE
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Restore
+        run: dotnet restore MusicDownloaderPro.sln
+      - name: Test
+        run: dotnet test MusicDownloaderPro.sln -c Release --no-restore --logger trx
+      - name: Publish x64
+        run: dotnet publish src/MusicDownloaderPro/MusicDownloaderPro.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -o artifacts/publish/win-x64
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+      - name: Build installer
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\MusicDownloaderPro.iss'
+      - name: Checksums
+        shell: pwsh
+        run: |
+          Get-FileHash artifacts/publish/win-x64/MusicDownloaderPro.exe, artifacts/installer/MusicDownloaderPro-Setup.exe -Algorithm SHA256 | ForEach-Object { "$($_.Hash)  $($_.Path | Split-Path -Leaf)" } | Set-Content artifacts/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MusicDownloaderPro-Windows-x64
+          path: |
+            artifacts/publish/win-x64/**
+            artifacts/installer/MusicDownloaderPro-Setup.exe
+            artifacts/SHA256SUMS.txt
+          if-no-files-found: error

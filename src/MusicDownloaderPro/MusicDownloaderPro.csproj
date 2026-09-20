@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>MusicDownloaderPro</AssemblyName>
+    <RootNamespace>MusicDownloaderPro</RootNamespace>
+    <ApplicationIcon>Assets\MusicDownloaderPro.ico</ApplicationIcon>
+    <Version>1.0.0</Version>
+    <Authors>Mateus Oliveira</Authors>
+    <Product>MusicDownloader Pro</Product>
+    <Description>Gerenciador de downloads autorizados e biblioteca de áudio.</Description>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.8" />
+  </ItemGroup>
+</Project>
