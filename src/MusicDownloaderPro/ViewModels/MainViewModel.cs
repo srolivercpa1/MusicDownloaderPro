@@ -26,16 +26,44 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private LibraryTrack? selectedTrack;
     [ObservableProperty] private string conversionInput = "";
     [ObservableProperty] private string conversionFormat = "mp3";
+    [ObservableProperty] private string onlineQuery = "";
+    [ObservableProperty] private OnlineMusicResult? selectedOnlineResult;
+    [ObservableProperty] private bool isSearchingOnline;
     [ObservableProperty] private AppSettings settings = new();
     public ObservableCollection<DownloadItem> DownloadItems { get; } = [];
     public ObservableCollection<LibraryTrack> Library { get; } = [];
-    public string[] Pages { get; } = ["Início","Novo Download","Downloads","Biblioteca","Conversor","Histórico","Favoritos","Configurações","Sobre"];
+    public ObservableCollection<OnlineMusicResult> OnlineResults { get; } = [];
+    public string[] Pages { get; } = ["Início","Busca Online","Novo Download","Downloads","Biblioteca","Conversor","Histórico","Favoritos","Configurações","Sobre"];
     public string[] Formats { get; } = ["mp3","wav","flac","m4a","ogg"];
 
     public MainViewModel() => _ = InitializeAsync();
     private async Task InitializeAsync(){Settings=await AppSettings.LoadAsync();await RefreshLibraryAsync();}
 
     [RelayCommand] private void Navigate(string? page){if(!string.IsNullOrWhiteSpace(page))CurrentPage=page;}
+    [RelayCommand] private async Task SearchOnlineAsync()
+    {
+        if(string.IsNullOrWhiteSpace(OnlineQuery)){StatusMessage="Digite o nome de uma música, artista ou álbum.";return;}
+        _operation?.Cancel(); _operation=new(); var current=_operation; IsSearchingOnline=true; CurrentPage="Busca Online"; StatusMessage="Buscando músicas autorizadas...";
+        try
+        {
+            var service=new OnlineMusicSearchService([new InternetArchiveMusicProvider()]);
+            var response=await service.SearchAsync(OnlineQuery,current.Token);
+            if(current!=_operation)return;
+            OnlineResults.Clear(); foreach(var result in response.Results)OnlineResults.Add(result);
+            StatusMessage=OnlineResults.Count==0?"Nenhuma música com download autorizado foi encontrada.":$"{OnlineResults.Count} resultado(s) encontrado(s).";
+            if(response.Failures.Count>0)StatusMessage+=" Algumas fontes ficaram indisponíveis.";
+        }
+        catch(OperationCanceledException){if(current==_operation)StatusMessage="Busca cancelada.";}
+        catch(Exception ex){StatusMessage="Não foi possível concluir a busca. Verifique sua conexão.";LogService.Error(ex);}
+        finally{if(current==_operation)IsSearchingOnline=false;}
+    }
+    [RelayCommand] private async Task DownloadOnlineResultAsync()
+    {
+        var option=SelectedOnlineResult?.DownloadOptions.FirstOrDefault(); if(option is null){StatusMessage="Esta fonte não disponibiliza um método de download autorizado.";return;}
+        OnlineQuery=SelectedOnlineResult!.Title; Url=option.Url.AbsoluteUri; AnalyzedAudio=new AudioMetadata{Name=Path.GetFileNameWithoutExtension(option.FileName),Artist=SelectedOnlineResult.Artist,Album=SelectedOnlineResult.Album,Source=SelectedOnlineResult.Provider,Format=option.Format,Size=option.Size,SupportsResume=true};
+        await StartDownloadAsync();
+    }
+    [RelayCommand] private void OpenOnlineSource(){if(SelectedOnlineResult is null)return;Process.Start(new ProcessStartInfo(SelectedOnlineResult.SourcePage.AbsoluteUri){UseShellExecute=true});}
     [RelayCommand] private async Task AnalyzeAsync()
     {
         try{_operation?.Cancel();_operation=new();StatusMessage="Analisando fonte autorizada...";AnalyzedAudio=await _downloads.AnalyzeAsync(Url,_operation.Token);StatusMessage="Fonte autorizada pronta para download.";}
