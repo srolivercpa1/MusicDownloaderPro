@@ -1,5 +1,6 @@
 using MusicDownloaderPro.Services;
 using System.IO;
+using Xunit;
 
 namespace MusicDownloaderPro.Tests;
 
