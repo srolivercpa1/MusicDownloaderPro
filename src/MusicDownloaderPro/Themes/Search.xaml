@@ -1,0 +1,19 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="clr-namespace:MusicDownloaderPro.Utilities">
+<BooleanToVisibilityConverter x:Key="boolVisibility"/>
+
+<Style x:Key="SearchResultItem" TargetType="ListViewItem" BasedOn="{StaticResource DarkListViewItem}"><Setter Property="Margin" Value="0,0,0,12"/><Setter Property="Padding" Value="18"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListViewItem"><Border CornerRadius="12" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="Stretch"/></Border><ControlTemplate.Triggers><Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
+<DataTemplate x:Key="OnlineResultCard">
+ <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="70"/><ColumnDefinition Width="*"/><ColumnDefinition Width="140"/></Grid.ColumnDefinitions>
+ <Border Width="54" Height="64" VerticalAlignment="Top" CornerRadius="12" Background="{DynamicResource SelectedBrush}"><Grid><TextBlock Text="♫" FontSize="32" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><ui:AudioCover CoverUri="{Binding CoverUrl}" Stretch="UniformToFill"/></Grid></Border>
+ <StackPanel Grid.Column="1" Margin="0,0,16,0">
+ <TextBlock Text="{Binding Title}" FontSize="18" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTip="{Binding Title}"/>
+ <TextBlock Text="{Binding Artist}" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding Artist}"/>
+ <TextBlock Text="{Binding Album}" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Album}"/>
+ <TextBlock Text="{Binding Formats}" Foreground="{DynamicResource AccentBrush}" Margin="0,8,0,0" TextTrimming="CharacterEllipsis"/>
+ <TextBlock Text="{Binding Provider}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
+ <TextBlock Text="{Binding License}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" ToolTip="{Binding License}"/>
+ </StackPanel>
+ <StackPanel Grid.Column="2" VerticalAlignment="Center"><Button Content="↓  Baixar" Command="{Binding DataContext.DownloadOnlineResultCommand,RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" Visibility="{Binding CanDownload,Converter={StaticResource boolVisibility}}"/><Button Content="Abrir fonte ↗" Style="{StaticResource SecondaryButton}" Command="{Binding DataContext.OpenOnlineSourceCommand,RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}"/></StackPanel>
+ </Grid>
+</DataTemplate>
+</ResourceDictionary>

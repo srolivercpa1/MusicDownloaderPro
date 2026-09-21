@@ -14,5 +14,6 @@ public partial class App : Application
         Directory.CreateDirectory(AppPaths.Root);
         Directory.CreateDirectory(AppPaths.Logs);
         await DatabaseService.InitializeAsync();
+        new MainWindow().Show();
     }
 }
