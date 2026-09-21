@@ -19,7 +19,7 @@ jobs:
         run: dotnet restore MusicDownloaderPro.sln
       - name: Test
         env:
-          MDP_TEST_SCREENSHOTS: artifacts/screenshots
+          MDP_TEST_SCREENSHOTS: ${{ github.workspace }}/artifacts/screenshots
         run: dotnet test MusicDownloaderPro.sln -c Release --no-restore --logger trx
       - name: Publish x64
         run: dotnet publish src/MusicDownloaderPro/MusicDownloaderPro.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -o artifacts/publish/win-x64
@@ -42,6 +42,15 @@ jobs:
         run: choco install innosetup --no-progress -y
       - name: Build installer
         run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\MusicDownloaderPro.iss'
+      - name: Installer smoke test
+        shell: pwsh
+        run: |
+          $target = Join-Path $env:RUNNER_TEMP "MusicDownloaderPro-InstallTest"
+          $setup = Start-Process "artifacts/installer/MusicDownloaderPro-Setup.exe" -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/DIR=`"$target`"" -Wait -PassThru
+          if ($setup.ExitCode -ne 0) { throw "Installer exited with $($setup.ExitCode)" }
+          if (!(Test-Path (Join-Path $target "MusicDownloaderPro.exe"))) { throw "Installed executable missing" }
+          $uninstall = Start-Process (Join-Path $target "unins000.exe") -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait -PassThru
+          if ($uninstall.ExitCode -ne 0) { throw "Uninstaller exited with $($uninstall.ExitCode)" }
       - name: Checksums
         shell: pwsh
         run: |
