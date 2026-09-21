@@ -1,5 +1,5 @@
 #define MyAppName "MusicDownloader Pro"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.1.0"
 #define MyAppPublisher "Mateus Oliveira"
 #define MyAppExeName "MusicDownloaderPro.exe"
 
