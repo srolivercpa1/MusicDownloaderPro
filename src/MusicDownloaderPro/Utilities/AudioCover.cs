@@ -24,7 +24,7 @@ public sealed class AudioCover : Image
     private async Task LoadAsync()
     {
         _load?.Cancel();
-        using var current = new CancellationTokenSource();
+        using var current = new CancellationTokenSource(TimeSpan.FromSeconds(8));
         _load = current;
         Source = null;
         try
